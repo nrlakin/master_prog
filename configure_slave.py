@@ -26,6 +26,14 @@ PINSTATES = {   '1': [0, 0, 0, 0],
 
 
 def initGPIOs():
+    """
+    Initialize select pins and UART 1. Also disables hardware flow control.
+    Note that this function will briefly spawn a shell process.
+
+    Args: None
+
+    Returns: Nothing.
+    """
     term = spawn("/bin/sh")
 
     cmd = "echo 128 > /sys/class/gpio/export"
@@ -69,6 +77,15 @@ def initGPIOs():
     term.close()
 
 def setSlave(slavenum = 1):
+    """
+    Set select pins to 'point' UART 1 at correct slave. Note that this function
+    will briefly spawn a shell process.
+
+    Args:
+        slavenum (int): Number of slave to program. 1-10.
+
+    Returns: Nothing.
+    """
     try:
         pins = PINSTATES[str(slavenum)]
     except Exception as e:
@@ -82,6 +99,13 @@ def setSlave(slavenum = 1):
     term.close()
 
 def connect():
+    """
+    Create a connection to a slave device.
+
+    Args: None
+
+    Returns: Pexpect spawn object.
+    """
     child = spawn("/usr/bin/screen /dev/ttyMFD1 115200 -L",
         maxread=1,
         timeout=25,
@@ -93,12 +117,30 @@ def connect():
     return child
 
 def wakeup(child):
+    """
+    Attempt to wake up a slave device.
+
+    Args:
+        child (Pexpect spawn object): Connection to slave.
+
+    Returns:
+        result (int): 1 if child woke up, 0 if not.
+    """
     sleep(0.2)
     child.send("\n")
-    result = child.expect(["login", TIMEOUT])
+    result = child.expect(["login", TIMEOUT], timeout=2)
     return result
 
 def start_boot(child):
+    """
+    Initialize firmware boot procedure. Fetch firmware init script from web,
+    chmod it to executable, and run it. Breaks when it sees files downloading.
+
+    Args:
+        child (Pexpect spawn object): Connection to slave.
+
+    Returns: Nothing
+    """
     child.sendline("wget --no-check-certificate http://neil-lakin.com/download/init_firmware.sh")
     child.expect(":~#")
     child.sendline("chmod a+x init_firmware.sh")
@@ -107,6 +149,16 @@ def start_boot(child):
     child.expect("edison-image-edison.ext4")
 
 def configure_wifi(child, network='Kinetic', password='00deadbeef'):
+    """
+    Configure wifi in slave device.
+
+    Args:
+        child (Pexpect spawn object): Connection to slave.
+        network (string): Name of network to connect to. Defaults to 'Kinetic'.
+        password (string): Password for network. Defaults to '00deadbeef'.
+
+    Returns: Nothing
+    """
     child.sendline('configure_edison --wifi')
     child.expect('SSIDs:')
     opts = child.before.split('\n')
@@ -126,6 +178,14 @@ def configure_wifi(child, network='Kinetic', password='00deadbeef'):
     child.sendline(password)
 
 def login(child, nopass=True):
+    """
+    Log into slave shell.
+
+    Args:
+        child (Pexpect spawn object): Connection to slave.
+        nopass (bool): Virgin devices have no root password. This is a flag
+            if no password should be used; else use the default Kinetic password.
+    """
     child.sendline("root")
     child.expect("word:")
     if nopass:
@@ -174,27 +234,3 @@ if __name__=="__main__":
             log.write(str(e))
             child.close()
             log.close()
-# for slave in range(N_SLAVES):
-#     log_name = "setup_log_slave_" + str(slave+1) + ".log"
-#     f = open(log_name, 'w')
-#     child = pexpect.spawn("/bin/sh")
-#     child.logfile = f
-#     for retry in RETRIES:
-#         try:
-#             child.sendline("\n")
-#             result = child.expect(":")
-#         except TimeoutException:
-#             pass
-
-
-# print("\n")
-#
-# print("configure_edison --wifi\n")
-# print("1\n")  # manually enter network
-# print("Kinetic\n")  # network name.
-# print("Y\n")        # confirm network name
-# print("2\n")        # security type = WPA-Personal
-# print("00deadbeef\n") # network password
-#
-# print("wget --no-check-certificate http://neil-lakin.com/download/init_firmware.sh -P /tmp || exit 1\n")
-# print("chmod a+x /tmp/init_firmware.sh\n")
