@@ -83,7 +83,7 @@ def setSlave(slavenum = 1):
 
 def connect():
     child = fdpexpect.fdspawn(os.open("/dev/ttyMFD1", os.O_RDWR|os.O_NONBLOCK|os.O_NOCTTY), logfile=sys.stdout.buffer)
-    child.delaybeforesend = 0.1
+    child.delaybeforesend = 0.4
     child.maxsize = 1
     child.timeout = 3
     return child
@@ -110,12 +110,16 @@ def login(child, nopass=True):
 
 if __name__=="__main__":
     try:
+        print("Initializing GPIOs.")
         initGPIOs()
-        setSlave(1)
+        print("Creating logfile.")
         log = open("logfile", 'w')
+        print("Initializing UART1.")
         out = run('stty -F /dev/ttyMFD1 115200 -parenb -parodd cs8 hupcl -cstopb cread clocal -crtscts -ignbrk -brkint -ignpar -parmrk -inpck -istrip -inlcr -igncr -icrnl -ixon -ixoff -iuclc -ixany -imaxbel iutf8 opost -olcuc -ocrnl onlcr -onocr -onlret -ofill -ofdel nl0 cr0 tab0 bs0 vt0 ff0 -isig -icanon -iexten -echo -echoe -echok -echonl -noflsh -xcase -tostop -echoprt -echoctl -echoke')
+        print("Creating connection to slave.")
         child = connect()
         # child.logfile=log
+        print("Trying to wake slave.")
         asleep = 1
         for retry in range(RETRIES):
             print "Try: " + str(retry)
