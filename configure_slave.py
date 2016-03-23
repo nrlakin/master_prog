@@ -1,4 +1,4 @@
-from pexpect import fdpexpect, TIMEOUT, run
+from pexpect import fdpexpect, TIMEOUT, run, spawn
 from time import sleep
 import os
 import re
@@ -10,19 +10,43 @@ SEL0 = 47
 SEL1 = 48
 SEL2 = 49
 SEL3 = 15
+SELECTS = [SEL3, SEL2, SEL1, SEL0]
 
-def SetGPIO(gpio, level):
-    cmd = "echo "+str(gpio)+" > /sys/class/gpio/export"
-    run('/bin/sh', extra_args=['-c', cmd])
-    cmd = "echo mode0 > /sys/kernel/debug/gpio_debug/gpio"+str(gpio)+"/current_pinmux"
-    run('/bin/sh', extra_args=['-c', cmd])
-    cmd = "echo out > /sys/class/gpio/gpio"+str(gpio)+"/direction"
-    run('/bin/sh', extra_args=['-c', cmd])
-    cmd = "echo "+str(level)+" > /sys/class/gpio/gpio"+str(gpio)+"/value"
-    run('/bin/sh', extra_args=['-c', cmd])
+PINSTATES = {   '1': [0, 0, 0, 0],
+                '2': [0, 0, 0, 1],
+                '3': [0, 0, 1, 0],
+                '4': [0, 0, 1, 1],
+                '5': [0, 1, 0, 0],
+                '6': [0, 1, 0, 1],
+                '7': [0, 1, 1, 0],
+                '8': [0, 1, 1, 1],
+                '9': [1, 0, 0, 0],
+                '10': [1, 0, 0, 1]}
+
+
+def initGPIOs():
+    term = spawn("/bin/sh")
+    for gpio in SELECTS:
+        cmd = "echo out > /sys/class/gpio/gpio"+str(gpio)+"/direction"
+        term.sendline(cmd)
+        cmd = "echo "+str(0)+" > /sys/class/gpio/gpio"+str(gpio)+"/value"
+        term.sendline(cmd)
+    term.close()
+
+def setGPIO(gpio, level):
+    term = spawn("/bin/sh")
+    term.sendline("echo")
 
 def setSlave(slavenum = 1):
-    return True
+    try:
+        pins = PINSTATES[str(slavenum)]
+    except Exception as e:
+        print str(e)
+    term = spawn("/bin/sh")
+    for index, value in enumerate(pins):
+        sel = SELECTS[index]
+        term.sendline("echo "+str(value)+" > /sys/class/gpio/gpio"+str(sel)+"/value")
+    term.close()
 
 def connect():
     child = fdpexpect.fdspawn(os.open("/dev/ttyMFD1", os.O_RDWR|os.O_NONBLOCK|os.O_NOCTTY))
