@@ -22,16 +22,23 @@ def login(child, nopass=True):
         child.sendline("onemm@rga")
 
 if __name__=="__main__":
-    run('stty -F /dev/ttyMFD1 115200')
-    child = connect()
-    asleep = 1
-    while asleep == 1:
-        asleep=wakeup(child)
-    nopass = "edison" in child.before
-    login(child, nopass)
-    child.expect("#")
-    print child.before
-    child.close()
+    try:
+        log = open("logfile", 'w')
+        run('stty -F /dev/ttyMFD1 115200')
+        child = connect()
+        child.logfile=log
+        asleep = 1
+        while asleep == 1:
+            asleep=wakeup(child)
+        nopass = "edison" in child.before
+        login(child, nopass)
+        child.expect("#")
+        print child.before
+        child.close()
+    except Exception as e:
+        log.write(e)
+        log.close()
+        child.close()
 # for slave in range(N_SLAVES):
 #     log_name = "setup_log_slave_" + str(slave+1) + ".log"
 #     f = open(log_name, 'w')
