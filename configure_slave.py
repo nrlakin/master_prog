@@ -35,8 +35,11 @@ if __name__=="__main__":
         log = open("logfile", 'w')
         out = run('stty -F /dev/ttyMFD1 115200')
         print out
-        out = run('ps | grep tty')
+        out = run('ps')
         print out
+        for line in out:
+            if 'tty' in line:
+                print line
         child = connect()
         child.logfile=log
         asleep = 1
