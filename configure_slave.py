@@ -30,6 +30,7 @@ if __name__=="__main__":
     login(child, nopass)
     child.expect("#")
     print child.before
+    child.close()
 # for slave in range(N_SLAVES):
 #     log_name = "setup_log_slave_" + str(slave+1) + ".log"
 #     f = open(log_name, 'w')
