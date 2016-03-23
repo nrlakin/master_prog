@@ -84,7 +84,6 @@ def setSlave(slavenum = 1):
 def connect():
     child = fdpexpect.fdspawn(os.open("/dev/ttyMFD1",
         os.O_RDWR|os.O_NONBLOCK|os.O_NOCTTY),
-        delaybeforesend=0.4,
         maxread=1,
         timeout=2,
         searchwindowsize=100,
