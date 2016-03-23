@@ -85,7 +85,7 @@ def setSlave(slavenum = 1):
     term.close()
 
 def connect():
-    child = fdpexpect.fdspawn(os.open("/dev/ttyMFD1", os.O_RDWR|os.O_NOCTTY))
+    child = fdpexpect.fdspawn(os.open("/dev/ttyMFD1", os.O_RDWR|os.O_NONBLOCK|os.O_NOCTTY))
     child.delaybeforesend = 0.1
     child.maxsize = 1
     child.timeout = 3
@@ -116,7 +116,7 @@ if __name__=="__main__":
         initGPIOs()
         setSlave(1)
         log = open("logfile", 'w')
-        out = run('stty -F /dev/ttyMFD1 115200 -crtscts cread')
+        out = run('stty -F /dev/ttyMFD1 115200 -parenb -parodd cs8 hupcl -cstopb cread clocal -crtscts -ignbrk -brkint -ignpar -parmrk -inpck -istrip -inlcr -igncr -icrnl -ixon -ixoff -iuclc -ixany -imaxbel iutf8 opost -olcuc -ocrnl onlcr -onocr -onlret -ofill -ofdel nl0 cr0 tab0 bs0 vt0 ff0 -isig -icanon -iexten -echo -echoe -echok -echonl -noflsh -xcase -tostop -echoprt -echoctl -echoke')
         child = connect()
         child.logfile=log
         asleep = 1
