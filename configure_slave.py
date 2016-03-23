@@ -87,10 +87,10 @@ def connect():
         maxread=1,
         timeout=2,
         searchwindowsize=100,
-        echo=False
         )
     child.logfile_read = sys.stdout
     child.delaybeforesend = 0.4
+    child.echo = 0
     return child
 
 def wakeup(child):
