@@ -34,6 +34,8 @@ if __name__=="__main__":
     try:
         log = open("logfile", 'w')
         run('stty -F /dev/ttyMFD1 115200')
+        out = run('ps | grep tty')
+        print out
         child = connect()
         child.logfile=log
         asleep = 1
