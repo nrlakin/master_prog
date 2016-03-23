@@ -1,6 +1,7 @@
 from pexpect import fdpexpect, TIMEOUT, run, spawn
 from time import sleep
 import os
+import sys
 import re
 
 N_SLAVES = 1
@@ -67,10 +68,6 @@ def initGPIOs():
         term.sendline(cmd)
     term.close()
 
-def setGPIO(gpio, level):
-    term = spawn("/bin/sh")
-    term.sendline("echo")
-
 def setSlave(slavenum = 1):
     try:
         pins = PINSTATES[str(slavenum)]
@@ -85,7 +82,7 @@ def setSlave(slavenum = 1):
     term.close()
 
 def connect():
-    child = fdpexpect.fdspawn(os.open("/dev/ttyMFD1", os.O_RDWR|os.O_NONBLOCK|os.O_NOCTTY))
+    child = fdpexpect.fdspawn(os.open("/dev/ttyMFD1", os.O_RDWR|os.O_NONBLOCK|os.O_NOCTTY), logfile=sys.stdout.buffer)
     child.delaybeforesend = 0.1
     child.maxsize = 1
     child.timeout = 3
@@ -115,10 +112,10 @@ if __name__=="__main__":
     try:
         initGPIOs()
         setSlave(1)
-        log = open("logfile", 'w')
+        # log = open("logfile", 'w')
         out = run('stty -F /dev/ttyMFD1 115200 -parenb -parodd cs8 hupcl -cstopb cread clocal -crtscts -ignbrk -brkint -ignpar -parmrk -inpck -istrip -inlcr -igncr -icrnl -ixon -ixoff -iuclc -ixany -imaxbel iutf8 opost -olcuc -ocrnl onlcr -onocr -onlret -ofill -ofdel nl0 cr0 tab0 bs0 vt0 ff0 -isig -icanon -iexten -echo -echoe -echok -echonl -noflsh -xcase -tostop -echoprt -echoctl -echoke')
         child = connect()
-        child.logfile=log
+        # child.logfile=log
         asleep = 1
         for retry in range(RETRIES):
             print "Try: " + str(retry)
