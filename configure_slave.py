@@ -12,7 +12,7 @@ def connect():
 
 def wakeup(child):
     sleep(0.2)
-    result = child.expect(["login", TIMEOUT], timeout=1)
+    result = child.expect(["login", TIMEOUT])
     if result != 0:
         child.sendline("\n")
     return result
@@ -24,7 +24,7 @@ def configure_wifi(child, network='Kinetic', password='00deadbeef'):
 
 def login(child, nopass=True):
     child.sendline("root")
-    child.expect("word:", timeout=1)
+    child.expect("word:", timeout=-1)
     if nopass:
         child.send("\n")
     else:
@@ -46,7 +46,7 @@ if __name__=="__main__":
             raise ValueError
         nopass = "edison" in child.before
         login(child, nopass)
-        child.expect("#", timeout=1)
+        child.expect("#")
         # print child.before
         child.close()
     except Exception as e:
