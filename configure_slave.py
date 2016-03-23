@@ -33,7 +33,8 @@ def login(child, nopass=True):
 if __name__=="__main__":
     try:
         log = open("logfile", 'w')
-        run('stty -F /dev/ttyMFD1 115200')
+        out = run('stty -F /dev/ttyMFD1 115200')
+        print out
         out = run('ps | grep tty')
         print out
         child = connect()
