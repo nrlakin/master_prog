@@ -17,7 +17,9 @@ def wakeup(child):
         child.sendline("\n")
     return result
 
-def configure_wifi(child, network, password):
+def configure_wifi(child, network='Kinetic', password='00deadbeef'):
+    child.sendline('configure_edison --wifi')
+
     return True
 
 def login(child, nopass=True):
@@ -35,8 +37,12 @@ if __name__=="__main__":
         child = connect()
         child.logfile=log
         asleep = 1
-        while asleep == 1:
+        for retry in range(RETRIES):
             asleep=wakeup(child)
+            if asleep == 0:
+                break
+        if asleep == 1:
+            raise ValueError
         nopass = "edison" in child.before
         login(child, nopass)
         child.expect("#")
