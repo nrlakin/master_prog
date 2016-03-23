@@ -13,13 +13,13 @@ SEL3 = 15
 
 def SetGPIO(gpio, level):
     cmd = "echo "+str(gpio)+" > /sys/class/gpio/export"
-    run('/bin/sh', ['-c', cmd])
+    run('/bin/sh', extra_args=['-c', cmd])
     cmd = "echo mode0 > /sys/kernel/debug/gpio_debug/gpio"+str(gpio)+"/current_pinmux"
-    run('/bin/sh', ['-c', cmd])
+    run('/bin/sh', extra_args=['-c', cmd])
     cmd = "echo out > /sys/class/gpio/gpio"+str(gpio)+"/direction"
-    run('/bin/sh', ['-c', cmd])
+    run('/bin/sh', extra_args=['-c', cmd])
     cmd = "echo "+str(level)+" > /sys/class/gpio/gpio"+str(gpio)+"/value"
-    run('/bin/sh', ['-c', cmd])
+    run('/bin/sh', extra_args=['-c', cmd])
 
 def setSlave(slavenum = 1):
     return True
