@@ -7,7 +7,7 @@ N_SLAVES = 1
 RETRIES = 5
 
 def connect():
-    child = fdpexpect.fdspawn(os.open("/dev/ttyMFD1", os.O_RDWR|os.O_NOCTTY))
+    child = fdpexpect.fdspawn(os.open("/dev/ttyMFD1", os.O_RDWR|os.O_NONBLOCK|os.O_NOCTTY))
     return child
 
 def wakeup(child):
@@ -19,7 +19,7 @@ def wakeup(child):
 
 def configure_wifi(child, network='Kinetic', password='00deadbeef'):
     child.sendline('configure_edison --wifi')
-
+    child.expect('')
     return True
 
 def login(child, nopass=True):
