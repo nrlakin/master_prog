@@ -27,6 +27,8 @@ PINSTATES = {   '1': [0, 0, 0, 0],
 def initGPIOs():
     term = spawn("/bin/sh")
     for gpio in SELECTS:
+        cmd = "echo +"str(gpio)+" > /sys/class/gpio/export"
+        term.sendline(cmd)
         cmd = "echo out > /sys/class/gpio/gpio"+str(gpio)+"/direction"
         term.sendline(cmd)
         cmd = "echo "+str(0)+" > /sys/class/gpio/gpio"+str(gpio)+"/value"
