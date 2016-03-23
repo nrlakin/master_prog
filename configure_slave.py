@@ -26,6 +26,31 @@ PINSTATES = {   '1': [0, 0, 0, 0],
 
 def initGPIOs():
     term = spawn("/bin/sh")
+
+    cmd = "echo 128 > /sys/class/gpio/export"
+    term.sendline(cmd)
+    cmd = "echo mode0 > /sys/kernel/debug/gpio_debug/gpio128/current_pinmux"
+    term.sendline(cmd)
+    cmd = "echo high > sys/class/gpio/gpio128/direction"
+    term.sendline(cmd)
+
+    cmd = "echo 129 > /sys/class/gpio/export"
+    term.sendline(cmd)
+    cmd = "echo mode0 > /sys/kernel/debug/gpio_debug/gpio129/current_pinmux"
+    term.sendline(cmd)
+    cmd = "echo high > sys/class/gpio/gpio129/direction"
+    term.sendline(cmd)
+
+    cmd = "echo 130 > /sys/class/gpio/export"
+    term.sendline(cmd)
+    cmd = "echo mode1 > /sys/kernel/debug/gpio_debug/gpio130/current_pinmux"
+    term.sendline(cmd)
+
+    cmd = "echo 131 > /sys/class/gpio/export"
+    term.sendline(cmd)
+    cmd = "echo mode1 > /sys/kernel/debug/gpio_debug/gpio131/current_pinmux"
+    term.sendline(cmd)
+
     for gpio in SELECTS:
         cmd = "echo "+str(gpio)+" > /sys/class/gpio/export"
         print cmd
@@ -61,6 +86,7 @@ def setSlave(slavenum = 1):
 
 def connect():
     child = fdpexpect.fdspawn(os.open("/dev/ttyMFD1", os.O_RDWR|os.O_NONBLOCK|os.O_NOCTTY))
+    child.delaybeforesend = 0.1
     return child
 
 def wakeup(child):
@@ -86,13 +112,7 @@ def login(child, nopass=True):
 if __name__=="__main__":
     try:
         log = open("logfile", 'w')
-        out = run('stty -F /dev/ttyMFD1 115200')
-        print out
-        out = run('ps')
-        print out
-        for line in out:
-            if 'tty' in line:
-                print line
+        out = run('stty -F /dev/ttyMFD1 115200 -ortsfl -rtsflow -ctsflow')
         child = connect()
         child.logfile=log
         asleep = 1
