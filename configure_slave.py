@@ -24,7 +24,7 @@ def configure_wifi(child, network='Kinetic', password='00deadbeef'):
 
 def login(child, nopass=True):
     child.sendline("root")
-    child.expect("word:")
+    child.expect("word:", timeout=1)
     if nopass:
         child.send("\n")
     else:
@@ -38,6 +38,7 @@ if __name__=="__main__":
         child.logfile=log
         asleep = 1
         for retry in range(RETRIES):
+            print "Try: " + str(retry)
             asleep=wakeup(child)
             if asleep == 0:
                 break
@@ -45,8 +46,8 @@ if __name__=="__main__":
             raise ValueError
         nopass = "edison" in child.before
         login(child, nopass)
-        child.expect("#")
-        print child.before
+        child.expect("#", timeout=1)
+        # print child.before
         child.close()
     except Exception as e:
         log.write(str(e))
