@@ -87,6 +87,8 @@ def setSlave(slavenum = 1):
 def connect():
     child = fdpexpect.fdspawn(os.open("/dev/ttyMFD1", os.O_RDWR|os.O_NONBLOCK|os.O_NOCTTY))
     child.delaybeforesend = 0.1
+    child.maxsize = 1
+    child.timeout = 3
     return child
 
 def wakeup(child):
@@ -112,7 +114,7 @@ def login(child, nopass=True):
 if __name__=="__main__":
     try:
         log = open("logfile", 'w')
-        out = run('stty -F /dev/ttyMFD1 115200 -ortsfl -rtsflow -ctsflow')
+        out = run('stty -F /dev/ttyMFD1 115200 -crtscts cread')
         child = connect()
         child.logfile=log
         asleep = 1
