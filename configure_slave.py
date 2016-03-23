@@ -22,7 +22,7 @@ def SetGPIO(gpio, level):
     run('/bin/sh', ['-c', cmd])
 
 def setSlave(slavenum = 1):
-
+    return True
 
 def connect():
     child = fdpexpect.fdspawn(os.open("/dev/ttyMFD1", os.O_RDWR|os.O_NONBLOCK|os.O_NOCTTY))
