@@ -95,9 +95,8 @@ def connect():
 
 def wakeup(child):
     sleep(0.2)
+    child.send("\n")
     result = child.expect(["login", TIMEOUT])
-    if result != 0:
-        child.sendline("\n")
     return result
 
 def configure_wifi(child, network='Kinetic', password='00deadbeef'):
