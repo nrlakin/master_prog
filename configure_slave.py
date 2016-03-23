@@ -18,7 +18,7 @@ def wakeup(child):
     return result
 
 def configure_wifi(child, network, password):
-
+    return True
 
 def login(child, nopass=True):
     child.sendline("root")
