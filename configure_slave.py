@@ -17,6 +17,9 @@ def wakeup(child):
         child.sendline("\n")
     return result
 
+def configure_wifi(child, network, password):
+
+
 def login(child, nopass=True):
     child.sendline("root")
     child.expect("word:")
@@ -40,7 +43,7 @@ if __name__=="__main__":
         print child.before
         child.close()
     except Exception as e:
-        log.write(e)
+        log.write(str(e))
         log.close()
         child.close()
 # for slave in range(N_SLAVES):
