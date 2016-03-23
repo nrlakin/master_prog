@@ -45,7 +45,9 @@ def setSlave(slavenum = 1):
     term = spawn("/bin/sh")
     for index, value in enumerate(pins):
         sel = SELECTS[index]
-        term.sendline("echo "+str(value)+" > /sys/class/gpio/gpio"+str(sel)+"/value")
+        cmd = "echo "+str(value)+" > /sys/class/gpio/gpio"+str(sel)+"/value"
+        print cmd
+        term.sendline(cmd)
     term.close()
 
 def connect():
