@@ -82,10 +82,16 @@ def setSlave(slavenum = 1):
     term.close()
 
 def connect():
-    child = fdpexpect.fdspawn(os.open("/dev/ttyMFD1", os.O_RDWR|os.O_NONBLOCK|os.O_NOCTTY), logfile=sys.stdout)
-    child.delaybeforesend = 0.4
-    child.maxsize = 1
-    child.timeout = 3
+    child = fdpexpect.fdspawn(os.open("/dev/ttyMFD1",
+        os.O_RDWR|os.O_NONBLOCK|os.O_NOCTTY),
+        logfile=sys.stdout,
+        delaybeforesend=0.4,
+        maxread=1,
+        timeout=2,
+        searchwindowsize=100,
+        echo=False
+        )
+    child.logfile_read = sys.stdout
     return child
 
 def wakeup(child):
