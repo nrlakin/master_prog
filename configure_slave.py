@@ -1,4 +1,5 @@
 from pexpect import fdpexpect, TIMEOUT, run
+from time import sleep
 import os
 import re
 
@@ -10,8 +11,11 @@ def connect():
     return child
 
 def wakeup(child):
-    child.sendline("\n")
-    return child.expect(["login:", TIMEOUT], timeout=1)
+    sleep(0.2)
+    result = child.expect(["login", TIMEOUT], timeout=1)
+    if result != 0:
+        child.sendline("\n")
+    return result
 
 def login(child, nopass=True):
     child.sendline("root")
