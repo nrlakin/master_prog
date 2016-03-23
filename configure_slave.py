@@ -6,7 +6,7 @@ N_SLAVES = 1
 RETRIES = 5
 
 def connect():
-    child = fdpexpect.fdspawn(os.open("/dev/ttyMFD1", os.O_RDWR|os.O_NONBLOCK|os.O_NOCTTY))
+    child = fdpexpect.fdspawn(os.open("/dev/ttyMFD1", os.O_RDWR|os.O_NOCTTY))
     return child
 
 def wakeup(child):
