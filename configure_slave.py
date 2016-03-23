@@ -1,4 +1,4 @@
-from pexpect import fdpexpect, TIMEOUT
+from pexpect import fdpexpect, TIMEOUT, run
 import os
 import re
 
@@ -22,7 +22,7 @@ def login(child, nopass=True):
         child.sendline("onemm@rga")
 
 if __name__=="__main__":
-    pexpect.run('stty -F /dev/ttyMFD1 115200')
+    run('stty -F /dev/ttyMFD1 115200')
     child = connect()
     asleep = 1
     while asleep == 1:
