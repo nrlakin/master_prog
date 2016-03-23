@@ -113,6 +113,8 @@ def login(child, nopass=True):
 
 if __name__=="__main__":
     try:
+        initGPIOs()
+        setSlave(1)
         log = open("logfile", 'w')
         out = run('stty -F /dev/ttyMFD1 115200 -crtscts cread')
         child = connect()
