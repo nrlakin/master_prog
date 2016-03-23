@@ -172,7 +172,7 @@ def configure_wifi(child, network='Kinetic', password='00deadbeef'):
     child.sendline(network)
     child.expect("[Y or N]:")
     child.sendline("Y")
-    child.expect("Select the type of security[0 to 3]":)
+    child.expect("Select the type of security[0 to 3]:")
     child.sendline("2")
     child.expect("password")
     child.sendline(password)
