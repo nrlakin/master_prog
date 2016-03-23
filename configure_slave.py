@@ -4,7 +4,7 @@ import os
 import sys
 import re
 
-N_SLAVES = 1
+N_SLAVES = 3
 RETRIES = 5
 
 SEL0 = 47
@@ -84,11 +84,11 @@ def setSlave(slavenum = 1):
 def connect():
     child = spawn("/usr/bin/screen /dev/ttyMFD1 115200 -L",
         maxread=1,
-        timeout=10,
+        timeout=25,
         searchwindowsize=100,
         echo=False
         )
-    child.logfile_read = sys.stdout
+    # child.logfile_read = sys.stdout
     child.delaybeforesend = 0.5
     return child
 
@@ -98,10 +98,32 @@ def wakeup(child):
     result = child.expect(["login", TIMEOUT])
     return result
 
+def start_boot(child):
+    child.sendline("wget --no-check-certificate http://neil-lakin.com/download/init_firmware.sh")
+    child.expect(":~#")
+    child.sendline("chmod a+x init_firmware.sh")
+    child.expect(":~#")
+    child.sendline("./init_firmware.sh")
+    child.expect("edison-image-edison.ext4")
+
 def configure_wifi(child, network='Kinetic', password='00deadbeef'):
     child.sendline('configure_edison --wifi')
-    child.expect('')
-    return True
+    child.expect('SSIDs:')
+    opts = child.before.split('\n')
+    option = '1'
+    for item in opts:
+        if "Manually input" in item:
+            option = item[0]
+            break;
+    child.sendline(option)
+    child.expect('network SSID:')
+    child.sendline(network)
+    child.expect("[Y or N]:")
+    child.sendline("Y")
+    child.expect("Select the type of security[0 to 3]":)
+    child.sendline("2")
+    child.expect("password")
+    child.sendline(password)
 
 def login(child, nopass=True):
     child.sendline("root")
@@ -112,34 +134,46 @@ def login(child, nopass=True):
         child.sendline("onemm@rga")
 
 if __name__=="__main__":
-    try:
-        print("Initializing GPIOs.")
-        initGPIOs()
-        print("Creating logfile.")
-        log = open("logfile", 'w')
-        print("Initializing UART1.")
-        out = run('stty -F /dev/ttyMFD1 115200 -parenb -parodd cs8 hupcl -cstopb cread clocal -crtscts -ignbrk -brkint -ignpar -parmrk -inpck -istrip -inlcr -igncr -icrnl -ixon -ixoff -iuclc -ixany -imaxbel iutf8 opost -olcuc -ocrnl onlcr -onocr -onlret -ofill -ofdel nl0 cr0 tab0 bs0 vt0 ff0 -isig -icanon -iexten -echo -echoe -echok -echonl -noflsh -xcase -tostop -echoprt -echoctl -echoke')
-        print("Creating connection to slave.")
-        child = connect()
-        child.logfile=log
-        print("Trying to wake slave.")
-        asleep = 1
-        for retry in range(RETRIES):
-            print "Try: " + str(retry)
-            asleep=wakeup(child)
-            if asleep == 0:
-                break
-        if asleep == 1:
-            raise ValueError
-        nopass = "edison" in child.before
-        login(child, nopass)
-        child.expect("#")
-        # print child.before
-        child.close()
-    except Exception as e:
-        log.write(str(e))
-        log.close()
-        child.close()
+    print("Initializing UART1.")
+    out = run('stty -F /dev/ttyMFD1 115200 -parenb -parodd cs8 hupcl -cstopb cread clocal -crtscts -ignbrk -brkint -ignpar -parmrk -inpck -istrip -inlcr -igncr -icrnl -ixon -ixoff -iuclc -ixany -imaxbel iutf8 opost -olcuc -ocrnl onlcr -onocr -onlret -ofill -ofdel nl0 cr0 tab0 bs0 vt0 ff0 -isig -icanon -iexten -echo -echoe -echok -echonl -noflsh -xcase -tostop -echoprt -echoctl -echoke')
+    print("Initializing GPIOs.")
+    initGPIOs()
+    for slave in range(N_SLAVES):
+        try:
+            print("Configuring Slave %d." % (slave+1))
+            setSlave(slave+1)
+            print("Creating logfile.")
+            log = open("init_slave_"+str(slave+1)+".log", 'w')
+            print("Creating connection to slave.")
+            child = connect()
+            child.logfile=log
+            print("Trying to wake slave.")
+            asleep = 1
+            for retry in range(RETRIES):
+                print "Try: " + str(retry)
+                asleep=wakeup(child)
+                if asleep == 0:
+                    break
+            if asleep == 1:
+                print("Couldn't wake slave %d. Moving on..." % (slave+1))
+                log.write("Couldn't wake slave %d. Moving on...\n" % (slave+1))
+                raise ValueError
+            nopass = "edison" in child.before
+            print("Slave awake, logging in as root.")
+            login(child, nopass)
+            child.expect(":~#")
+            print("We're in! Configuring wifi...")
+            configure_wifi(child)
+            child.expect(":~#")
+            print("Wifi configured. Downloading files and initializing ota update.")
+            start_boot(child)
+            # print child.before
+            child.close()
+            log.close()
+        except Exception as e:
+            log.write(str(e))
+            child.close()
+            log.close()
 # for slave in range(N_SLAVES):
 #     log_name = "setup_log_slave_" + str(slave+1) + ".log"
 #     f = open(log_name, 'w')
