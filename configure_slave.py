@@ -84,12 +84,12 @@ def setSlave(slavenum = 1):
 def connect():
     child = spawn("/usr/bin/screen /dev/ttyMFD1 115200 -L",
         maxread=1,
-        timeout=2,
+        timeout=10,
         searchwindowsize=100,
         echo=False
         )
     child.logfile_read = sys.stdout
-    child.delaybeforesend = 0.4
+    child.delaybeforesend = 0.5
     return child
 
 def wakeup(child):
@@ -105,7 +105,7 @@ def configure_wifi(child, network='Kinetic', password='00deadbeef'):
 
 def login(child, nopass=True):
     child.sendline("root")
-    child.expect("word:", timeout=-1)
+    child.expect("word:")
     if nopass:
         child.send("\n")
     else:
@@ -121,7 +121,7 @@ if __name__=="__main__":
         out = run('stty -F /dev/ttyMFD1 115200 -parenb -parodd cs8 hupcl -cstopb cread clocal -crtscts -ignbrk -brkint -ignpar -parmrk -inpck -istrip -inlcr -igncr -icrnl -ixon -ixoff -iuclc -ixany -imaxbel iutf8 opost -olcuc -ocrnl onlcr -onocr -onlret -ofill -ofdel nl0 cr0 tab0 bs0 vt0 ff0 -isig -icanon -iexten -echo -echoe -echok -echonl -noflsh -xcase -tostop -echoprt -echoctl -echoke')
         print("Creating connection to slave.")
         child = connect()
-        # child.logfile=log
+        child.logfile=log
         print("Trying to wake slave.")
         asleep = 1
         for retry in range(RETRIES):
