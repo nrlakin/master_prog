@@ -6,6 +6,24 @@ import re
 N_SLAVES = 1
 RETRIES = 5
 
+SEL0 = 47
+SEL1 = 48
+SEL2 = 49
+SEL3 = 15
+
+def SetGPIO(gpio, level):
+    cmd = "echo "+str(gpio)+" > /sys/class/gpio/export"
+    run('/bin/sh', ['-c', cmd])
+    cmd = "echo mode0 > /sys/kernel/debug/gpio_debug/gpio"+str(gpio)+"/current_pinmux"
+    run('/bin/sh', ['-c', cmd])
+    cmd = "echo out > /sys/class/gpio/gpio"+str(gpio)+"/direction"
+    run('/bin/sh', ['-c', cmd])
+    cmd = "echo "+str(level)+" > /sys/class/gpio/gpio"+str(gpio)+"/value"
+    run('/bin/sh', ['-c', cmd])
+
+def setSlave(slavenum = 1):
+
+
 def connect():
     child = fdpexpect.fdspawn(os.open("/dev/ttyMFD1", os.O_RDWR|os.O_NONBLOCK|os.O_NOCTTY))
     return child
