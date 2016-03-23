@@ -29,6 +29,9 @@ def initGPIOs():
     for gpio in SELECTS:
         cmd = "echo "+str(gpio)+" > /sys/class/gpio/export"
         term.sendline(cmd)
+        if gpio == SEL0 or gpio == SEL3:
+            cmd = "echo mode0 > /sys/kernel/debug/gpio_debug/gpio"+str(gpio)+"current_pinmux"
+            term.sendline(cmd)
         cmd = "echo out > /sys/class/gpio/gpio"+str(gpio)+"/direction"
         term.sendline(cmd)
         cmd = "echo "+str(0)+" > /sys/class/gpio/gpio"+str(gpio)+"/value"
