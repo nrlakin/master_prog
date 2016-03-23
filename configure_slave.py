@@ -82,7 +82,7 @@ def setSlave(slavenum = 1):
     term.close()
 
 def connect():
-    child = spawn("/usr/bin/screen /dev/ttyMFD1 115200 -L"
+    child = spawn("/usr/bin/screen /dev/ttyMFD1 115200 -L",
         maxread=1,
         timeout=2,
         searchwindowsize=100,
