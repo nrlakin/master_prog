@@ -127,8 +127,9 @@ def wakeup(child):
         result (int): 1 if child woke up, 0 if not.
     """
     sleep(0.2)
-    child.send("\n")
-    result = child.expect(["login", TIMEOUT], timeout=2)
+    child.send("\n\n")
+    result = child.expect(["login:", TIMEOUT], timeout=2)
+    print("Timeout is set to %d" % (child.timeout))
     return result
 
 def start_boot(child):
@@ -192,6 +193,10 @@ def login(child, nopass=True):
         child.send("\n")
     else:
         child.sendline("onemm@rga")
+    child.send("\n\n")
+    result = child.expect([":~#", TIMEOUT])
+    return result == 0
+
 
 if __name__=="__main__":
     print("Initializing UART1.")
@@ -220,8 +225,15 @@ if __name__=="__main__":
                 raise ValueError
             nopass = "edison" in child.before
             print("Slave awake, logging in as root.")
-            login(child, nopass)
-            child.expect(":~#")
+            logged_in = False
+            for retry in range(RETRIES):
+                logged_in = login(child, nopass)
+                if logged_in:
+                    break;
+            if logged_in == False:
+                print("Couldn't log in. Exiting...")
+                log.write("Couldn't log in.\n")
+                raise ValueError
             print("We're in! Configuring wifi...")
             configure_wifi(child)
             child.expect(":~#")
