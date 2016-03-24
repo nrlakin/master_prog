@@ -127,7 +127,8 @@ def wakeup(child):
         result (int): 1 if child woke up, 0 if not.
     """
     sleep(0.2)
-    child.send("\n\n")
+    child.send("\n")
+    child.send("\n")
     result = child.expect(["login:", TIMEOUT], timeout=2)
     print("Timeout is set to %d" % (child.timeout))
     return result
