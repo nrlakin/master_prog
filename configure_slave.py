@@ -129,7 +129,7 @@ def wakeup(child):
     sleep(0.2)
     child.send("\n")
     child.send("\n")
-    result = child.expect(["login:", TIMEOUT], timeout=2)
+    result = child.expect(["Poky", TIMEOUT], timeout=2)
     print("Timeout is set to %d" % (child.timeout))
     return result
 
@@ -188,6 +188,7 @@ def login(child, nopass=True):
         nopass (bool): Virgin devices have no root password. This is a flag
             if no password should be used; else use the default Kinetic password.
     """
+    child.expect("login:")
     child.sendline("root")
     child.expect("word:")
     if nopass:
