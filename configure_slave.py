@@ -188,7 +188,6 @@ def configure_wifi(child, network='Kinetic', password='00deadbeef'):
             if "Manually input" in item:
                 option = item[0]
                 break;
-    send_backspaces()   # make sure awake after download.
     child.sendline(option)
     child.expect('network SSID:', timeout=5)
     child.sendline(network)
@@ -230,12 +229,13 @@ if __name__=="__main__":
         try:
             print("Configuring Slave %d." % (slave+1))
             setSlave(slave+1)
+            sleep(0.5)
             print("Creating logfile.")
             log = open("init_slave_"+str(slave+1)+".log", 'w')
             print("Flushing serial buffer.")
             flush_uart()
-            print("Initializing UART1.")
-            out = run('stty -F /dev/ttyMFD1 115200 -parenb -parodd cs8 hupcl -cstopb cread clocal -crtscts -ignbrk -brkint -ignpar -parmrk -inpck -istrip -inlcr -igncr -icrnl -ixon -ixoff -iuclc -ixany -imaxbel iutf8 opost -olcuc -ocrnl onlcr -onocr -onlret -ofill -ofdel nl0 cr0 tab0 bs0 vt0 ff0 -isig -icanon -iexten -echo -echoe -echok -echonl -noflsh -xcase -tostop -echoprt -echoctl -echoke')
+            # print("Initializing UART1.")
+            # out = run('stty -F /dev/ttyMFD1 115200 -parenb -parodd cs8 hupcl -cstopb cread clocal -crtscts -ignbrk -brkint -ignpar -parmrk -inpck -istrip -inlcr -igncr -icrnl -ixon -ixoff -iuclc -ixany -imaxbel iutf8 opost -olcuc -ocrnl onlcr -onocr -onlret -ofill -ofdel nl0 cr0 tab0 bs0 vt0 ff0 -isig -icanon -iexten -echo -echoe -echok -echonl -noflsh -xcase -tostop -echoprt -echoctl -echoke')
             print("Creating connection to slave.")
             child = connect()
             child.logfile=log
