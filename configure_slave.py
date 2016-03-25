@@ -140,12 +140,16 @@ def start_boot(child):
     Returns: Nothing
     """
     send_backspaces()
+    print("Downloading boot script.")
     child.sendline("wget --no-check-certificate http://neil-lakin.com/download/init_firmware.sh")
-    child.expect(":~#")
+    child.expect(":~#", timeout=30)
     send_backspaces()   # make sure awake after download.
+    print("Setting to executable...")
     child.sendline("chmod a+x init_firmware.sh")
     child.expect(":~#")
+    print("Executing...")
     child.sendline("./init_firmware.sh")
+    print("On our way!")
     child.expect("edison-image-edison.ext4")
 
 def send_backspaces():
