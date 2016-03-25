@@ -156,6 +156,12 @@ def flush_uart():
     f = os.open("/dev/ttyMFD1", os.O_RDWR|os.O_NOCTTY)
     termios.tcflush(f, termios.TCIFLUSH)
     os.close(f)
+    screens = run("screen -ls").split()
+    for line in screens:
+        if ".pts" in line:
+            session = line.split(".")[0]
+            print("Killing active screen session %s" + session.lstrip())
+            run("screen -S "+session+"-X kill")
 
 def configure_wifi(child, network='Kinetic', password='00deadbeef'):
     """
@@ -188,7 +194,7 @@ def configure_wifi(child, network='Kinetic', password='00deadbeef'):
     child.sendline(network)
     child.expect("[Y or N]:", timeout=5)
     child.sendline("Y")
-    child.expect("Select the type of security[0 to 3]:",timeout=5)
+    child.expect("Select the type of security[0 to 3]:", timeout=5)
     child.sendline("2")
     child.expect("password",timeout=5)
     child.sendline(password)
