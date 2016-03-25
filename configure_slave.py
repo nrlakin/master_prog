@@ -167,13 +167,18 @@ def configure_wifi(child, network='Kinetic', password='00deadbeef'):
     for i in range(10):
         child.send("\010")
     child.sendline('configure_edison --wifi')
-    child.expect('SSIDs:', timeout=30)
-    opts = child.before.split('\n')
-    option = '1'
-    for item in opts:
-        if "Manually input" in item:
-            option = item[0]
-            break;
+    result = child.expect(['SSIDs:','SSID:'], timeout=30)
+    # Different boards have a different response; some versions present a list,
+    # some fresh edisons just ask for a '1'.
+    if result == 1:
+        option = 1
+    else:
+        opts = child.before.split('\n')
+        option = '1'
+        for item in opts:
+            if "Manually input" in item:
+                option = item[0]
+                break;
     child.sendline(option)
     child.expect('network SSID:', timeout=5)
     child.sendline(network)
