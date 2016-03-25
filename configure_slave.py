@@ -103,7 +103,7 @@ def connect():
     Returns: Pexpect spawn object.
     """
     child = spawn("/usr/bin/screen /dev/ttyMFD1 115200",
-        maxread=500,
+        maxread=2000,
         timeout=1,
         searchwindowsize=100,
         echo=False
@@ -161,7 +161,7 @@ def configure_wifi(child, network='Kinetic', password='00deadbeef'):
     for i in range(10):
         child.send("\010")
     child.sendline('configure_edison --wifi')
-    child.expect('SSIDs:')
+    child.expect('SSIDs:', timeout=30)
     opts = child.before.split('\n')
     option = '1'
     for item in opts:
@@ -169,13 +169,13 @@ def configure_wifi(child, network='Kinetic', password='00deadbeef'):
             option = item[0]
             break;
     child.sendline(option)
-    child.expect('network SSID:')
+    child.expect('network SSID:', timeout=5)
     child.sendline(network)
-    child.expect("[Y or N]:")
+    child.expect("[Y or N]:", timeout=5)
     child.sendline("Y")
-    child.expect("Select the type of security[0 to 3]:")
+    child.expect("Select the type of security[0 to 3]:",timeout=5)
     child.sendline("2")
-    child.expect("password")
+    child.expect("password",timeout=5)
     child.sendline(password)
 
 def login(child, nopass=True):
