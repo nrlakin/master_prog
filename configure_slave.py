@@ -104,12 +104,12 @@ def connect():
     """
     child = spawn("/usr/bin/screen /dev/ttyMFD1 115200",
         maxread=500,
-        timeout=25,
+        timeout=1,
         searchwindowsize=100,
         echo=False
         )
     # child.logfile_read = sys.stdout
-    child.delaybeforesend = 0.5
+    child.delaybeforesend = 0.3
     return child
 
 def wakeup(child):
@@ -125,7 +125,7 @@ def wakeup(child):
     sleep(0.2)
     child.send("\n")
     child.send("\n")
-    result = child.expect(["Poky", TIMEOUT], timeout=5)
+    result = child.expect(["login:", TIMEOUT], timeout=5)
     return result
 
 def start_boot(child):
@@ -183,14 +183,12 @@ def login(child, nopass=True):
         nopass (bool): Virgin devices have no root password. This is a flag
             if no password should be used; else use the default Kinetic password.
     """
-    result = child.expect(["login:", TIMEOUT])
-    if result == 1:
-        return False
+    for i in range(10):
+        child.send("\010")
     child.send("root\n")
     child.expect(["word:", TIMEOUT])
     if result == 1:
         return False
-    child.send("root\n")
     if nopass:
         child.send("\n")
     else:
