@@ -62,17 +62,13 @@ def initGPIOs():
 
     for gpio in SELECTS:
         cmd = "echo "+str(gpio)+" > /sys/class/gpio/export"
-        print cmd
         term.sendline(cmd)
         if gpio == SEL0 or gpio == SEL3:
             cmd = "echo mode0 > /sys/kernel/debug/gpio_debug/gpio"+str(gpio)+"/current_pinmux"
-            print cmd
             term.sendline(cmd)
         cmd = "echo out > /sys/class/gpio/gpio"+str(gpio)+"/direction"
-        print cmd
         term.sendline(cmd)
         cmd = "echo "+str(0)+" > /sys/class/gpio/gpio"+str(gpio)+"/value"
-        print cmd
         term.sendline(cmd)
     term.close()
 
@@ -88,13 +84,13 @@ def setSlave(slavenum = 1):
     """
     try:
         pins = PINSTATES[str(slavenum)]
+        print("Setting select pins (SEL3:0 = %s)" % (':'.join([str(val) for val in pins])))
     except Exception as e:
         print str(e)
     term = spawn("/bin/sh")
     for index, value in enumerate(pins):
         sel = SELECTS[index]
         cmd = "echo "+str(value)+" > /sys/class/gpio/gpio"+str(sel)+"/value"
-        print cmd
         term.sendline(cmd)
     term.close()
 
@@ -129,8 +125,7 @@ def wakeup(child):
     sleep(0.2)
     child.send("\n")
     child.send("\n")
-    result = child.expect(["Poky", TIMEOUT], timeout=2)
-    print("Timeout is set to %d" % (child.timeout))
+    result = child.expect(["Poky", TIMEOUT], timeout=5)
     return result
 
 def start_boot(child):
