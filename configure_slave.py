@@ -126,7 +126,7 @@ def wakeup(child):
     sleep(0.2)
     child.send("\n")
     child.send("\n")
-    result = child.expect(["login:", TIMEOUT], timeout=5)
+    result = child.expect(["login:", ":~#", TIMEOUT], timeout=5)
     return result
 
 def start_boot(child):
@@ -234,32 +234,35 @@ if __name__=="__main__":
             child = connect()
             child.logfile=log
             print("Trying to wake slave.")
-            asleep = 1
+            asleep = 2
             for retry in range(RETRIES):
                 print "Try: " + str(retry)
                 asleep=wakeup(child)
-                if asleep == 0:
+                if asleep != 2:
                     break
-            if asleep == 1:
+            if asleep == 2:
                 print("Couldn't wake slave %d. Moving on..." % (slave+1))
                 log.write("Couldn't wake slave %d. Moving on...\n" % (slave+1))
                 child.close()
                 log.close()
-                raise ValueError
-            nopass = "edison" in child.before
-            print("Slave awake, logging in as root.")
-            logged_in = False
-            for retry in range(RETRIES):
-                logged_in = login(child, nopass)
-                if logged_in:
-                    break;
-            if logged_in == False:
-                print("Couldn't log in. Exiting...")
-                log.write("Couldn't log in.\n")
-                child.close()
-                log.close()
-                raise ValueError
-            print("We're in! Configuring wifi...")
+                continue
+            if asleep == 1:
+                print("Already logged in, moving on to WiFi config.")
+            else:
+                nopass = "edison" in child.before
+                print("Slave awake, logging in as root.")
+                logged_in = False
+                for retry in range(RETRIES):
+                    logged_in = login(child, nopass)
+                    if logged_in:
+                        break;
+                if logged_in == False:
+                    print("Couldn't log in. Exiting...")
+                    log.write("Couldn't log in.\n")
+                    child.close()
+                    log.close()
+                    continue
+                print("We're in! Configuring wifi...")
             configure_wifi(child)
             child.expect(":~#")
             print("Wifi configured. Downloading files and initializing ota update.")
