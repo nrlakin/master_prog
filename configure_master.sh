@@ -6,7 +6,7 @@ opkg update
 echo "Upgrading existing installs...\n"
 opkg upgrade
 echo "Installing Python...\n"
-opkg install python-devel
+opkg install python-dev
 echo "Trying opkg pip...\n"
 opkg install python-pip
 opkg "Pulling get-pip.py...\n"
