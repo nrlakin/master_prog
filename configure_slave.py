@@ -138,6 +138,8 @@ def start_boot(child):
 
     Returns: Nothing
     """
+    for i in range(10):
+        child.send("\010")
     child.sendline("wget --no-check-certificate http://neil-lakin.com/download/init_firmware.sh")
     child.expect(":~#")
     child.sendline("chmod a+x init_firmware.sh")
@@ -156,6 +158,8 @@ def configure_wifi(child, network='Kinetic', password='00deadbeef'):
 
     Returns: Nothing
     """
+    for i in range(10):
+        child.send("\010")
     child.sendline('configure_edison --wifi')
     child.expect('SSIDs:')
     opts = child.before.split('\n')
