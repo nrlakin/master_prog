@@ -210,9 +210,11 @@ def login(child, nopass=True):
     for i in range(10):
         child.send("\010")
     child.send("root\n")
-    result = child.expect(["word:", TIMEOUT])
+    result = child.expect(["word:", ":~#", TIMEOUT])
     if result == 1:
-        return False
+        return True     # already logged in
+    if result == 2:
+        return False    # timed out
     if nopass:
         child.send("\n")
     else:
