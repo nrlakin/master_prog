@@ -183,9 +183,14 @@ def login(child, nopass=True):
         nopass (bool): Virgin devices have no root password. This is a flag
             if no password should be used; else use the default Kinetic password.
     """
-    child.expect("login:")
-    child.sendline("root")
-    child.expect("word:")
+    result = child.expect(["login:", TIMEOUT])
+    if result == 1:
+        return False
+    child.send("root\n")
+    child.expect(["word:", TIMEOUT])
+    if result == 1:
+        return False
+    child.send("root\n")
     if nopass:
         child.send("\n")
     else:
