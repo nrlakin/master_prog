@@ -228,7 +228,7 @@ if __name__=="__main__":
             log = open("init_slave_"+str(slave+1)+".log", 'w')
             print("Flushing serial buffer.")
             flush_uart()
-            "Initializing UART1."
+            print("Initializing UART1.")
             out = run('stty -F /dev/ttyMFD1 115200 -parenb -parodd cs8 hupcl -cstopb cread clocal -crtscts -ignbrk -brkint -ignpar -parmrk -inpck -istrip -inlcr -igncr -icrnl -ixon -ixoff -iuclc -ixany -imaxbel iutf8 opost -olcuc -ocrnl onlcr -onocr -onlret -ofill -ofdel nl0 cr0 tab0 bs0 vt0 ff0 -isig -icanon -iexten -echo -echoe -echok -echonl -noflsh -xcase -tostop -echoprt -echoctl -echoke')
             print("Creating connection to slave.")
             child = connect()
