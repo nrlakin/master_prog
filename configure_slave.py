@@ -1,6 +1,7 @@
 from pexpect import fdpexpect, TIMEOUT, run, spawn
 from time import sleep
 import os
+import termios
 import sys
 import re
 
