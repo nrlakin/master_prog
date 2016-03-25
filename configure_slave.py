@@ -147,6 +147,11 @@ def start_boot(child):
     child.sendline("./init_firmware.sh")
     child.expect("edison-image-edison.ext4")
 
+def flush_uart():
+    f = os.open("/dev/ttyMFD1", os.O_RDWR|os.O_NOCTTY)
+    termios.tcflush(f, termios.TCIFLUSH)
+    os.close(f)
+
 def configure_wifi(child, network='Kinetic', password='00deadbeef'):
     """
     Configure wifi in slave device.
