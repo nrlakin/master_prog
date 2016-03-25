@@ -139,14 +139,18 @@ def start_boot(child):
 
     Returns: Nothing
     """
-    for i in range(10):
-        child.send("\010")
+    send_backspaces()
     child.sendline("wget --no-check-certificate http://neil-lakin.com/download/init_firmware.sh")
     child.expect(":~#")
+    send_backspaces()   # make sure awake after download.
     child.sendline("chmod a+x init_firmware.sh")
     child.expect(":~#")
     child.sendline("./init_firmware.sh")
     child.expect("edison-image-edison.ext4")
+
+def send_backspaces():
+    for i in range(10):
+        child.send("\010")
 
 def flush_uart():
     f = os.open("/dev/ttyMFD1", os.O_RDWR|os.O_NOCTTY)
@@ -164,14 +168,13 @@ def configure_wifi(child, network='Kinetic', password='00deadbeef'):
 
     Returns: Nothing
     """
-    for i in range(10):
-        child.send("\010")
+    send_backspaces()   # make sure awake
     child.sendline('configure_edison --wifi')
     result = child.expect(['SSIDs:','SSID:'], timeout=30)
     # Different boards have a different response; some versions present a list,
     # some fresh edisons just ask for a '1'.
     if result == 1:
-        option = 1
+        option = '1'
     else:
         opts = child.before.split('\n')
         option = '1'
@@ -179,6 +182,7 @@ def configure_wifi(child, network='Kinetic', password='00deadbeef'):
             if "Manually input" in item:
                 option = item[0]
                 break;
+    send_backspaces()   # make sure awake after download.
     child.sendline(option)
     child.expect('network SSID:', timeout=5)
     child.sendline(network)
@@ -214,8 +218,6 @@ def login(child, nopass=True):
 
 
 if __name__=="__main__":
-    print("Initializing UART1.")
-    out = run('stty -F /dev/ttyMFD1 115200 -parenb -parodd cs8 hupcl -cstopb cread clocal -crtscts -ignbrk -brkint -ignpar -parmrk -inpck -istrip -inlcr -igncr -icrnl -ixon -ixoff -iuclc -ixany -imaxbel iutf8 opost -olcuc -ocrnl onlcr -onocr -onlret -ofill -ofdel nl0 cr0 tab0 bs0 vt0 ff0 -isig -icanon -iexten -echo -echoe -echok -echonl -noflsh -xcase -tostop -echoprt -echoctl -echoke')
     print("Initializing GPIOs.")
     initGPIOs()
     for slave in range(N_SLAVES):
@@ -224,6 +226,10 @@ if __name__=="__main__":
             setSlave(slave+1)
             print("Creating logfile.")
             log = open("init_slave_"+str(slave+1)+".log", 'w')
+            print("Flushing serial buffer.")
+            flush_uart()
+            "Initializing UART1."
+            out = run('stty -F /dev/ttyMFD1 115200 -parenb -parodd cs8 hupcl -cstopb cread clocal -crtscts -ignbrk -brkint -ignpar -parmrk -inpck -istrip -inlcr -igncr -icrnl -ixon -ixoff -iuclc -ixany -imaxbel iutf8 opost -olcuc -ocrnl onlcr -onocr -onlret -ofill -ofdel nl0 cr0 tab0 bs0 vt0 ff0 -isig -icanon -iexten -echo -echoe -echok -echonl -noflsh -xcase -tostop -echoprt -echoctl -echoke')
             print("Creating connection to slave.")
             child = connect()
             child.logfile=log
