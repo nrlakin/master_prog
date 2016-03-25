@@ -160,8 +160,8 @@ def flush_uart():
     for line in screens:
         if ".pts" in line:
             session = line.split(".")[0]
-            print("Killing active screen session %s" + session.lstrip())
-            run("screen -S "+session+"-X kill")
+            print("Killing active screen session %s" % (session.lstrip())
+            run("screen -S "+session.lstrip()+" -X kill")
 
 def configure_wifi(child, network='Kinetic', password='00deadbeef'):
     """
