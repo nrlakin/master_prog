@@ -190,12 +190,14 @@ def configure_wifi(child, network='Kinetic', password='00deadbeef'):
                 break;
     child.sendline(option)
     child.expect('network SSID:', timeout=5)
+    print("Entering network SSID...")
     child.sendline(network)
     child.expect("[Y or N]", timeout=5)
     child.sendline("Y")
     child.expect("Select the type of security[0 to 3]", timeout=5)
     child.sendline("2")
     child.expect("password",timeout=5)
+    print("Entering network password...")
     child.sendline(password)
 
 def login(child, nopass=True):
@@ -272,7 +274,7 @@ if __name__=="__main__":
                     continue
                 print("We're in! Configuring wifi...")
             configure_wifi(child)
-            child.expect(":~#")
+            child.expect(":~#", timeout=60)
             print("Wifi configured. Downloading files and initializing ota update.")
             start_boot(child)
             # print child.before
