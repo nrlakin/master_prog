@@ -103,7 +103,7 @@ def connect():
     Returns: Pexpect spawn object.
     """
     child = spawn("/usr/bin/screen /dev/ttyMFD1 115200",
-        maxread=1,
+        maxread=500,
         timeout=25,
         searchwindowsize=100,
         echo=False
