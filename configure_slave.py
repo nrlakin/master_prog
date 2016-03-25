@@ -105,7 +105,7 @@ def connect():
     """
     child = spawn("/usr/bin/screen /dev/ttyMFD1 115200",
         maxread=2000,
-        timeout=1,
+        timeout=5,
         searchwindowsize=100,
         echo=False
         )
@@ -243,6 +243,8 @@ if __name__=="__main__":
             if asleep == 1:
                 print("Couldn't wake slave %d. Moving on..." % (slave+1))
                 log.write("Couldn't wake slave %d. Moving on...\n" % (slave+1))
+                child.close()
+                log.close()
                 raise ValueError
             nopass = "edison" in child.before
             print("Slave awake, logging in as root.")
@@ -254,6 +256,8 @@ if __name__=="__main__":
             if logged_in == False:
                 print("Couldn't log in. Exiting...")
                 log.write("Couldn't log in.\n")
+                child.close()
+                log.close()
                 raise ValueError
             print("We're in! Configuring wifi...")
             configure_wifi(child)
@@ -264,6 +268,7 @@ if __name__=="__main__":
             child.close()
             log.close()
         except Exception as e:
+            log.write("Exited due to exception:\n")
             log.write(str(e))
             child.close()
             log.close()
