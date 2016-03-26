@@ -72,6 +72,8 @@ def initGPIOs():
         cmd = "echo "+str(0)+" > /sys/class/gpio/gpio"+str(gpio)+"/value"
         term.sendline(cmd)
     term.close()
+    print("Wait for new GPIO settings to take effect...")
+    sleep(3)
 
 def setSlave(slavenum = 1):
     """
@@ -94,6 +96,8 @@ def setSlave(slavenum = 1):
         cmd = "echo "+str(value)+" > /sys/class/gpio/gpio"+str(sel)+"/value"
         term.sendline(cmd)
     term.close()
+    print("Wait for new GPIO settings to take effect...")
+    sleep(3)
 
 def connect():
     """
@@ -153,10 +157,18 @@ def start_boot(child):
     child.expect("edison-image-edison.ext4")
 
 def send_backspaces():
+    """
+    Send backspaces to keep UART alive.
+    """
     for i in range(10):
         child.send("\010")
 
 def flush_uart():
+    """
+    Flush the serial connection. Flush the terminal file handler, and destroy
+    active screen processes. This is extremely important--failing to do this
+    results in corrupted reads on the incoming file.
+    """
     f = os.open("/dev/ttyMFD1", os.O_RDWR|os.O_NOCTTY)
     termios.tcflush(f, termios.TCIFLUSH)
     os.close(f)
