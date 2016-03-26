@@ -154,7 +154,7 @@ def start_boot(child):
     print("Executing...")
     child.sendline("./init_firmware.sh")
     print("On our way!")
-    child.expect("edison-image-edison.ext4")
+    child.expect("edison-image-edison")
 
 def send_backspaces():
     """
