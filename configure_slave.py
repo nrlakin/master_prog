@@ -291,9 +291,6 @@ if __name__=="__main__":
             child.expect(":~#", timeout=60)
             print("    Wifi configured. Downloading files and initializing ota update.")
             start_boot(child)
-            sleep(400)
-            print(run("ls -al /update"))
-            # print child.before
             child.close()
             log.close()
         except Exception as e:
