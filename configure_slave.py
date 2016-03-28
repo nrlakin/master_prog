@@ -5,8 +5,8 @@ import termios
 import sys
 import re
 
-N_SLAVES = 1
-RETRIES = 5
+N_SLAVES = 8
+RETRIES = 3
 
 SEL0 = 47
 SEL1 = 48
@@ -87,7 +87,7 @@ def setSlave(slavenum = 1):
     """
     try:
         pins = PINSTATES[str(slavenum)]
-        print("Setting select pins (SEL3:0 = %s)" % (':'.join([str(val) for val in pins])))
+        print("    Setting select pins (SEL3:0 = %s)" % (':'.join([str(val) for val in pins])))
     except Exception as e:
         print str(e)
     term = spawn("/bin/sh")
@@ -96,7 +96,7 @@ def setSlave(slavenum = 1):
         cmd = "echo "+str(value)+" > /sys/class/gpio/gpio"+str(sel)+"/value"
         term.sendline(cmd)
     term.close()
-    print("Wait for new GPIO settings to take effect...")
+    print("    Wait for new GPIO settings to take effect...")
     sleep(3)
 
 def connect():
@@ -144,16 +144,16 @@ def start_boot(child):
     Returns: Nothing
     """
     send_backspaces()
-    print("Downloading boot script.")
+    print("    Downloading boot script.")
     child.sendline("wget --no-check-certificate http://neil-lakin.com/download/init_firmware.sh")
     child.expect(":~#", timeout=30)
     send_backspaces()   # make sure awake after download.
-    print("Setting to executable...")
-    child.sendline("chmod a+x init_firmware.sh")
+    print("    Setting to executable...")
+    child.sendline("    chmod a+x init_firmware.sh")
     child.expect(":~#")
-    print("Executing...")
+    print("    Executing...")
     child.sendline("./init_firmware.sh")
-    print("On our way!")
+    print("    On our way!")
     child.expect("edison-image-edison")
 
 def send_backspaces():
@@ -167,16 +167,14 @@ def flush_uart():
     """
     Flush the serial connection. Flush the terminal file handler, and destroy
     active screen processes. This is extremely important--failing to do this
-    results in corrupted reads on the incoming file.
+    results in corrupted reads on the incoming file with increasing bit errors
+    on each new connection.
     """
-    f = os.open("/dev/ttyMFD1", os.O_RDWR|os.O_NOCTTY)
-    termios.tcflush(f, termios.TCIFLUSH)
-    os.close(f)
     screens = run("screen -ls").split()
     for line in screens:
         if ".pts" in line:
             session = line.split(".")[0]
-            print("Killing active screen session %s" % (session.lstrip()))
+            print("    Killing active screen session %s" % (session.lstrip()))
             run("screen -S "+session.lstrip()+" -X kill")
 
 def configure_wifi(child, network='Kinetic', password='00deadbeef'):
@@ -206,14 +204,14 @@ def configure_wifi(child, network='Kinetic', password='00deadbeef'):
                 break;
     child.sendline(option)
     child.expect('network SSID:', timeout=5)
-    print("Entering network SSID...")
+    print("    Entering network SSID...")
     child.sendline(network)
     child.expect("[Y or N]", timeout=5)
     child.sendline("Y")
     child.expect("Select the type of security[0 to 3]", timeout=5)
     child.sendline("2")
     child.expect("password",timeout=5)
-    print("Entering network password...")
+    print("    Entering network password...")
     child.sendline(password)
 
 def login(child, nopass=True):
@@ -250,16 +248,16 @@ if __name__=="__main__":
             print("Configuring Slave %d." % (slave+1))
             setSlave(slave+1)
             sleep(0.5)
-            print("Creating logfile.")
+            print("    Creating logfile.")
             log = open("init_slave_"+str(slave+1)+".log", 'w')
-            print("Flushing serial buffer.")
+            print("    Flushing serial buffer.")
             flush_uart()
             # print("Initializing UART1.")
             # out = run('stty -F /dev/ttyMFD1 115200 -parenb -parodd cs8 hupcl -cstopb cread clocal -crtscts -ignbrk -brkint -ignpar -parmrk -inpck -istrip -inlcr -igncr -icrnl -ixon -ixoff -iuclc -ixany -imaxbel iutf8 opost -olcuc -ocrnl onlcr -onocr -onlret -ofill -ofdel nl0 cr0 tab0 bs0 vt0 ff0 -isig -icanon -iexten -echo -echoe -echok -echonl -noflsh -xcase -tostop -echoprt -echoctl -echoke')
-            print("Creating connection to slave.")
+            print("    Creating connection to slave.")
             child = connect()
             child.logfile=log
-            print("Trying to wake slave.")
+            print("    Trying to wake slave.")
             asleep = 2
             for retry in range(RETRIES):
                 print "Try: " + str(retry)
@@ -267,31 +265,31 @@ if __name__=="__main__":
                 if asleep != 2:
                     break
             if asleep == 2:
-                print("Couldn't wake slave %d. Moving on..." % (slave+1))
+                print("    Couldn't wake slave %d. Moving on..." % (slave+1))
                 log.write("Couldn't wake slave %d. Moving on...\n" % (slave+1))
                 child.close()
                 log.close()
                 continue
             if asleep == 1:
-                print("Already logged in, moving on to WiFi config.")
+                print("    Already logged in, moving on to WiFi config.")
             else:
                 nopass = "edison" in child.before
-                print("Slave awake, logging in as root.")
+                print("     Slave awake, logging in as root.")
                 logged_in = False
                 for retry in range(RETRIES):
                     logged_in = login(child, nopass)
                     if logged_in:
                         break;
                 if logged_in == False:
-                    print("Couldn't log in. Exiting...")
+                    print("    Couldn't log in. Exiting...")
                     log.write("Couldn't log in.\n")
                     child.close()
                     log.close()
                     continue
-                print("We're in! Configuring wifi...")
+                print("    We're in! Configuring wifi...")
             configure_wifi(child)
             child.expect(":~#", timeout=60)
-            print("Wifi configured. Downloading files and initializing ota update.")
+            print("    Wifi configured. Downloading files and initializing ota update.")
             start_boot(child)
             sleep(400)
             print(run("ls -al /update"))
