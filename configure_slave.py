@@ -260,7 +260,7 @@ if __name__=="__main__":
             print("    Trying to wake slave.")
             asleep = 2
             for retry in range(RETRIES):
-                print "Try: " + str(retry)
+                print "        Try: " + str(retry)
                 asleep=wakeup(child)
                 if asleep != 2:
                     break
@@ -274,7 +274,7 @@ if __name__=="__main__":
                 print("    Already logged in, moving on to WiFi config.")
             else:
                 nopass = "edison" in child.before
-                print("     Slave awake, logging in as root.")
+                print("    Slave awake, logging in as root.")
                 logged_in = False
                 for retry in range(RETRIES):
                     logged_in = login(child, nopass)
