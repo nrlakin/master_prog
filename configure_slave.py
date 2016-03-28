@@ -5,7 +5,7 @@ import termios
 import sys
 import re
 
-N_SLAVES = 3
+N_SLAVES = 1
 RETRIES = 5
 
 SEL0 = 47
