@@ -9,7 +9,7 @@ echo "Installing Python...\n"
 opkg install python-dev
 echo "Trying opkg pip...\n"
 opkg install python-pip
-opkg "Pulling get-pip.py...\n"
+echo "Pulling get-pip.py...\n"
 wget --no-check-certificate https://bootstrap.pypa.io/get-pip.py
 echo "Installing up-to-date pip...\n"
 python get-pip.py
