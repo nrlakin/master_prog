@@ -17,5 +17,7 @@ echo "Installing pexpect...\n"
 pip install pexpect
 echo "Installing screen...\n"
 opkg install screen
+echo "Cleaning up...\n"
+rm get-pip.py
 echo "Rebooting...\n"
 reboot

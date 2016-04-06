@@ -5,15 +5,28 @@ import termios
 import sys
 import re
 
-N_SLAVES = 8
+"""
+Constants go up here.
+"""
+# Number of slave ports on dock.
+N_SLAVES = 10
+
+# Number of wakeup/login retries.
 RETRIES = 3
 
+# Remote file URLs
+INIT_FIRMWARE_SH_URL = "http://neil-lakin.com/download/init_firmware.sh"
+# Return values for wakeup()
+WAKE_STATE_AWAKE = 0
+WAKE_STATE_AWAKE_LOGGED_IN = 1
+WAKE_STATE_ASLEEP = 2
+
+# MUX Selection pins
 SEL0 = 47
 SEL1 = 48
 SEL2 = 49
 SEL3 = 15
 SELECTS = [SEL3, SEL2, SEL1, SEL0]
-
 PINSTATES = {   '1': [0, 0, 0, 0],
                 '2': [0, 0, 0, 1],
                 '3': [0, 0, 1, 0],
@@ -125,7 +138,10 @@ def wakeup(child):
         child (Pexpect spawn object): Connection to slave.
 
     Returns:
-        result (int): 1 if child woke up, 0 if not.
+        result (int):
+            0 if slave is awake and awaiting login
+            1 if slave is awake and already logged in
+            2 if slave is not connected or still asleep (timeout)
     """
     sleep(0.2)
     child.send("\n")
@@ -143,24 +159,31 @@ def start_boot(child):
 
     Returns: Nothing
     """
+    # script name should be last part of url.
+    init_script_name = INIT_FIRMWARE_SH_URL.split('/')[-1]
     send_backspaces()
     print("    Downloading boot script.")
-    child.sendline("wget --no-check-certificate http://neil-lakin.com/download/init_firmware.sh")
+    child.sendline("wget --no-check-certificate " + INIT_FIRMWARE_SH_URL)
     child.expect(":~#", timeout=30)
     send_backspaces()   # make sure awake after download.
     print("    Setting to executable...")
-    child.sendline("    chmod a+x init_firmware.sh")
+    child.sendline("chmod a+x " + init_script_name)
     child.expect(":~#")
     print("    Executing...")
-    child.sendline("./init_firmware.sh")
+    child.sendline("./" + init_script_name)
     print("    On our way!")
     child.expect("edison-image-edison")
 
 def send_backspaces():
     """
-    Send backspaces to keep UART alive.
+    Send some backspaces to keep UART alive. In some processes (like configuring
+    wifi or setting password) sending newlines might interfere with output.
+
+    Args: None
+
+    Returns: Nothing
     """
-    for i in range(10):
+    for i in range(5):
         child.send("\010")
 
 def flush_uart():
@@ -169,11 +192,15 @@ def flush_uart():
     active screen processes. This is extremely important--failing to do this
     results in corrupted reads on the incoming file with increasing bit errors
     on each new connection.
+
+    Args: None
+
+    Returns: Nothing
     """
     screens = run("screen -ls").split()
-    for line in screens:
-        if ".pts" in line:
-            session = line.split(".")[0]
+    for phrase in screens:
+        if ".pts" in phrase:
+            session = phrase.split(".")[0]
             print("    Killing active screen session %s" % (session.lstrip()))
             run("screen -S "+session.lstrip()+" -X kill")
 
@@ -222,12 +249,16 @@ def login(child, nopass=True):
         child (Pexpect spawn object): Connection to slave.
         nopass (bool): Virgin devices have no root password. This is a flag
             if no password should be used; else use the default Kinetic password.
+
+    Returns:
+        bool: True if successfully logged in as root, False otherwise.
     """
     for i in range(10):
         child.send("\010")
     child.send("root\n")
-    result = child.expect(["word:", ":~#", TIMEOUT])
+    result = child.expect(["word:", "#", TIMEOUT])
     if result == 1:
+        child.sendline("cd ~")  # future commands expect ":~#" for command prompt; make sure we're in home directory
         return True     # already logged in
     if result == 2:
         return False    # timed out
@@ -241,38 +272,47 @@ def login(child, nopass=True):
 
 
 if __name__=="__main__":
+    """
+    Main script. If the initialization procedure gets much more complicated,
+    this may need to be refactored as a real state machine.
+    """
     print("Initializing GPIOs.")
     initGPIOs()
     for slave in range(N_SLAVES):
         try:
             print("Configuring Slave %d." % (slave+1))
             setSlave(slave+1)
-            sleep(0.5)
+            sleep(0.5)             # make sure new GPIO settings have taken effect
             print("    Creating logfile.")
             log = open("init_slave_"+str(slave+1)+".log", 'w')
             print("    Flushing serial buffer.")
             flush_uart()
-            # print("Initializing UART1.")
-            # out = run('stty -F /dev/ttyMFD1 115200 -parenb -parodd cs8 hupcl -cstopb cread clocal -crtscts -ignbrk -brkint -ignpar -parmrk -inpck -istrip -inlcr -igncr -icrnl -ixon -ixoff -iuclc -ixany -imaxbel iutf8 opost -olcuc -ocrnl onlcr -onocr -onlret -ofill -ofdel nl0 cr0 tab0 bs0 vt0 ff0 -isig -icanon -iexten -echo -echoe -echok -echonl -noflsh -xcase -tostop -echoprt -echoctl -echoke')
             print("    Creating connection to slave.")
             child = connect()
             child.logfile=log
             print("    Trying to wake slave.")
-            asleep = 2
+            # Try RETRIES times to wake slave. Usually a slave device will wake
+            # on the first try, occasionally second. 'asleep' is initialized
+            asleep = WAKE_STATE_ASLEEP
             for retry in range(RETRIES):
-                print "        Try: " + str(retry)
-                asleep=wakeup(child)
-                if asleep != 2:
+                print "        Try: " + str(retry+1)
+                asleep = wakeup(child)
+                if asleep != WAKE_STATE_ASLEEP:
                     break
-            if asleep == 2:
+            if asleep == WAKE_STATE_ASLEEP:
+                # never woke up; likely not connected.
                 print("    Couldn't wake slave %d. Moving on..." % (slave+1))
                 log.write("Couldn't wake slave %d. Moving on...\n" % (slave+1))
                 child.close()
                 log.close()
                 continue
-            if asleep == 1:
+            if asleep == WAKE_STATE_AWAKE_LOGGED_IN:
+                # device was already logged in
                 print("    Already logged in, moving on to WiFi config.")
             else:
+                # log in as root
+                # if "edison" in command prompt, this device has not been
+                # configured. There will be no root password set.
                 nopass = "edison" in child.before
                 print("    Slave awake, logging in as root.")
                 logged_in = False
@@ -288,7 +328,11 @@ if __name__=="__main__":
                     continue
                 print("    We're in! Configuring wifi...")
             configure_wifi(child)
+            # Set a long timeout for wifi configuration (60 seconds); it can
+            # take some time to connect.
             child.expect(":~#", timeout=60)
+            # sleep a couple seconds to ensure connection works
+            sleep(2)
             print("    Wifi configured. Downloading files and initializing ota update.")
             start_boot(child)
             child.close()
