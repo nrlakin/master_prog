@@ -117,8 +117,11 @@ def printSelects():
     for sel in SELECTS:
         cmd = "cat /sys/class/gpio/gpio"+str(sel)+"/value"
         term.sendline(cmd)
-        result = term.readlines()
-        print("gpio %d: %s" % (sel, result[-1]))
+        result = term.readline()
+        if "cat" in result:
+            # echo enabled, discard
+            result = term.readline()
+        print("gpio %d: %s" % (sel, result))
     term.close()
 
 def connect():
