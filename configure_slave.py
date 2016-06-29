@@ -287,6 +287,7 @@ if __name__=="__main__":
     print("Initializing GPIOs.")
     initGPIOs()
     for slave in range(N_SLAVES):
+        child = None
         try:
             print("Configuring Slave %d." % (slave+1))
             setSlave(slave+1)
@@ -350,5 +351,6 @@ if __name__=="__main__":
         except Exception as e:
             log.write("Exited due to exception:\n")
             log.write(str(e))
-            child.close()
+            if child is not None:
+                child.close()
             log.close()
