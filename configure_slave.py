@@ -112,6 +112,14 @@ def setSlave(slavenum = 1):
     print("    Wait for new GPIO settings to take effect...")
     sleep(3)
 
+def printSelects():
+    term = spawn("/bin/sh")
+    for sel in selects:
+        cmd = "cat /sys/class/gpio/gpio"+str(sel)+"/value"
+        term.sendline(cmd)
+        print("gpio %d: %s" % (sel, term.readline()))
+    term.close()
+
 def connect():
     """
     Create a connection to a slave device.
@@ -285,6 +293,8 @@ if __name__=="__main__":
             sleep(0.5)             # make sure new GPIO settings have taken effect
             print("    Creating logfile.")
             log = open("init_slave_"+str(slave+1)+".log", 'w')
+            print("    Select states:")
+            printSelects()
             print("    Flushing serial buffer.")
             flush_uart()
             print("    Creating connection to slave.")
