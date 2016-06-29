@@ -86,7 +86,7 @@ def initGPIOs():
         term.sendline(cmd)
         # apparent race condition; pexpect closes with contents in output buffer.
         # force output to be flushed by reading back echo.
-        print("%s" % (term.readline(cmd)))
+        print("%s" % (term.readline()))
     term.close()
     print("Wait for new GPIO settings to take effect...")
     sleep(3)
@@ -111,6 +111,7 @@ def setSlave(slavenum = 1):
         sel = SELECTS[index]
         cmd = "echo "+str(value)+" > /sys/class/gpio/gpio"+str(sel)+"/value"
         term.sendline(cmd)
+        print("%s" % (term.readline()))
     term.close()
     print("    Wait for new GPIO settings to take effect...")
     sleep(3)
