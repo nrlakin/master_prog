@@ -84,6 +84,9 @@ def initGPIOs():
         term.sendline(cmd)
         cmd = "echo "+str(0)+" > /sys/class/gpio/gpio"+str(gpio)+"/value"
         term.sendline(cmd)
+        # apparent race condition; pexpect closes with contents in output buffer.
+        # force output to be flushed by reading back echo.
+        term.readline(cmd)
     term.close()
     print("Wait for new GPIO settings to take effect...")
     sleep(3)
