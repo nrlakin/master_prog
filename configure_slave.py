@@ -114,10 +114,11 @@ def setSlave(slavenum = 1):
 
 def printSelects():
     term = spawn("/bin/sh")
-    for sel in selects:
+    for sel in SELECTS:
         cmd = "cat /sys/class/gpio/gpio"+str(sel)+"/value"
         term.sendline(cmd)
-        print("gpio %d: %s" % (sel, term.readline()))
+        result = term.readlines()
+        print("gpio %d: %s" % (sel, result[-1]))
     term.close()
 
 def connect():
